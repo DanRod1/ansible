@@ -1,5 +1,7 @@
 ---
 - hosts: localhost
-  remote_user: root
-  roles:
-    - hardware
+  tasks:
+    - name: test lookup pluggin pipe
+      ansible.builtin.debug:
+        msg: 'item => {{ item }}, vendor => {{ item.vendor }}, product => {{ item.product }}'
+      loop: '{{ lookup("pipe","/home/drodriguez/dev/ansible/lshw.py -c usb") }}'
