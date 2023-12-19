@@ -20,6 +20,7 @@ class ListHardware:
                 tmp['vendor'] = entry['vendor']
                 tmp['product'] = entry['product']
                 self.result.append(tmp)
+        if len(self.result) == 0: self.result.append('Default')
         return self.result
 
 def parseARgs(parser = None ):
