@@ -3,31 +3,33 @@
 import json
 import subprocess
 import argparse
+import re
+import jmespath
 
 
 class ListHardware:
-    def get_nic_data(self, className :str):
-        lshw_cmd = ['lshw', '-json', '-c', className]
+    def get_nic_data(self):
+        lshw_cmd = ['lshw', '-json']
         proc = subprocess.Popen(lshw_cmd, stdout=subprocess.PIPE,
                                             stderr=subprocess.PIPE)
-        self.proc = proc.communicate()[0]
-
-    def read_data(self):
-        self.result= []
-        tmp = {}
-        for entry in json.loads(self.proc) :
-            if 'vendor' in entry :
-                tmp['vendor'] = entry['vendor']
-                tmp['product'] = entry['product']
-                self.result.append(tmp)
-        if len(self.result) == 0: self.result.append('Default')
-        return self.result
+        self.proc =  str(proc.communicate()[0], encoding='utf-8')
+        return self.proc
+        
+    def find_class(self, data :str):
+        jsonData = json.loads(data)
+        bus = jmespath.search("children[?class=='bus'].children | [0]", jsonData) 
+        pci = jmespath.search("@[?id=='pci'].children | [0]", bus) 
+        bridge = jmespath.search("@[?class=='bridge'].children | [0]", pci) 
+        multimedia = jmespath.search("@[?id=='multimedia'].children | [0]", bridge) 
+        product = jmespath.search("[*].{product:product,devideid:physid} | [] ", multimedia) 
+        if len(product) == 0 :
+            return ['what\'s the fuck with lshw on this hosts']
+        else :
+            return product
 
 def parseARgs(parser = None ):
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
-    parser.add_argument("-c", "--className", action="store", default = 'display',
-                    help="classe utilisée pour lshw")
     args = parser.parse_args()
 
     if args.verbose:
@@ -35,10 +37,8 @@ def parseARgs(parser = None ):
     else:
         return args
     
-options = parseARgs(argparse.ArgumentParser(description='lance lshw en mode python et retorun un nested listant les cartes Vidéos'))
 if __name__ == '__main__':
 
     list_hardware = ListHardware()
-    list_hardware.get_nic_data(className=options.className)
-    result = list_hardware.read_data()
-    print(result)
+    jsonData = list_hardware.get_nic_data()
+    print(list_hardware.find_class(data = jsonData))
