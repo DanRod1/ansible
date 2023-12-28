@@ -2,8 +2,6 @@
 # -*- coding:utf-8 -*-
 import json
 import subprocess
-import argparse
-import re
 import jmespath
 
 
@@ -26,17 +24,7 @@ class ListHardware:
             return ['what\'s the fuck with lshw on this hosts']
         else :
             return product
-
-def parseARgs(parser = None ):
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="increase output verbosity")
-    args = parser.parse_args()
-
-    if args.verbose:
-        print(f"usage is lshw.py -v | --verbose \n")
-    else:
-        return args
-    
+  
 if __name__ == '__main__':
 
     list_hardware = ListHardware()

@@ -44,18 +44,10 @@ from collections import OrderedDict
 from functools import reduce
 from itertools import chain
 
-
 if sys.version_info.major == 2:
     import ConfigParser as configparser
 else:
     import configparser
-
-__version__ = "1.14"
-
-try:
-    input = raw_input
-except NameError:
-    pass
 
 virtual_profiles = [
     # (name, description, callback)
@@ -105,7 +97,6 @@ Usage: autorandr [options]
 --list                  list configurations
 --skip-options <option> comma separated list of xrandr arguments (e.g. "gamma")
                         to skip both in detecting changes and applying a profile
---version               show version information and exit
 
  If no suitable profile can be identified, the current configuration is kept.
  To change this behaviour and switch to a fallback configuration, specify
@@ -116,18 +107,6 @@ Usage: autorandr [options]
 
  The following virtual configurations are available:
 """.strip()
-
-
-def is_closed_lid(output):
-    if not re.match(r'(eDP(-?[0-9]\+)*|LVDS(-?[0-9]\+)*)', output):
-        return False
-    lids = glob.glob("/proc/acpi/button/lid/*/state")
-    if len(lids) == 1:
-        state_file = lids[0]
-        with open(state_file) as f:
-            content = f.read()
-            return "close" in content
-    return False
 
 
 class AutorandrException(Exception):
@@ -554,6 +533,16 @@ class XrandrOutput(object):
                                  (name, "(= `%s') " % self.options[name] if self.options[name] else "", other.options[name]))
         return diffs
 
+def is_closed_lid(output):
+    if not re.match(r'(eDP(-?[0-9]\+)*|LVDS(-?[0-9]\+)*)', output):
+        return False
+    lids = glob.glob("/proc/acpi/button/lid/*/state")
+    if len(lids) == 1:
+        state_file = lids[0]
+        with open(state_file) as f:
+            content = f.read()
+            return "close" in content
+    return False
 
 def xrandr_version():
     "Return the version of XRandR that this system uses"
@@ -1355,6 +1344,7 @@ def read_config(options, directory):
         for key, value in config.items("config"):
             options.setdefault("--%s" % key, value)
 
+
 def main(argv):
     try:
         opts, args = getopt.getopt(
@@ -1393,10 +1383,6 @@ def main(argv):
 
     if "-h" in options or "--help" in options:
         exit_help()
-
-    if "--version" in options:
-        print("autorandr " + __version__)
-        sys.exit(0)
 
     if "--current" in options and "--detected" in options:
         print("--current and --detected are mutually exclusive.", file=sys.stderr)
