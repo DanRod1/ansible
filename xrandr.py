@@ -118,35 +118,6 @@ Usage: autorandr [options]
 """.strip()
 
 
-class Version(object):
-    def __init__(self, version):
-        self._version = version
-        self._version_parts = re.split("([0-9]+)", version)
-
-    def __eq__(self, other):
-        return self._version_parts == other._version_parts
-
-    def __lt__(self, other):
-        for my, theirs in zip(self._version_parts, other._version_parts):
-            if my.isnumeric() and theirs.isnumeric():
-                my = int(my)
-                theirs = int(theirs)
-            if my < theirs:
-                return True
-        return len(theirs) > len(my)
-
-    def __ge__(self, other):
-        return not (self < other)
-
-    def __ne__(self, other):
-        return not (self == other)
-
-    def __le__(self, other):
-        return (self < other) or (self == other)
-
-    def __gt__(self, other):
-        return self >= other and not (self == other)
-
 def is_closed_lid(output):
     if not re.match(r'(eDP(-?[0-9]\+)*|LVDS(-?[0-9]\+)*)', output):
         return False
